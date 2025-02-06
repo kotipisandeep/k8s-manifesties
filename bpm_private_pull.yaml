@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bpm
+  labels:
+    type: hpa
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      type: hpa
+  template:
+    metadata:
+      labels:
+        type: hpa
+    spec:
+      imagePullSecrets:
+      - name: bpmsecret
+      containers:
+      - name: bpm
+        image: sandeepfile/bpm
+        ports:
+        - containerPort: 8280
+        resources:
+          requests:
+            cpu: 50m
+            memory: 3Gi
+          limits:
+            cpu: 3
+            memory: 7Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hpasvcbpm
+spec:
+  type: NodePort
+  selector:
+    type: hpa
+  ports:
+  - port: 8280
+    nodePort: 30009
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+   name: hpabpm
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dockercred
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 10
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 10

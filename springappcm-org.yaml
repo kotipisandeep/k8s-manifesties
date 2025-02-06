@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springappcm
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: spring
+  template:
+    metadata:
+      labels:
+        app: spring
+    spec:
+      containers:
+      - name: springappcon
+        image: dockerhandson/spring-boot-mongo:1
+        resources:
+          requests:
+            cpu: 200m
+            memory: 100Mi
+          limits:
+            cpu: 500m
+            memory: 200Mi
+        ports:
+        - containerPort: 9090
+        env:
+        - name: DGHOST
+          valueFrom:
+            configMapKeyRef:
+              name: mangocm
+              key: MONGO_DB_HOSTNAME
+        - name: DBUNAME
+          valueFrom:
+            configMapKeyRef:
+              name: mangocm
+              key: MONGO_DB_USERNAME
+        - name: DBPASS
+          valueFrom:
+            configMapKeyRef:
+              name: mangocm
+              key: MONGO_DB_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: springappsvc
+spec:
+  type: NodePort
+  selector:
+    app: spring
+  ports:
+  - port: 90
+    targetPort: 9090
+    nodePort: 30097
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: mangocm
+spec:
+  selector:
+    matchLabels:
+      app: mangocm
+  template:
+    metadata:
+      labels:
+        app: mangocm
+    spec:
+      containers:
+      - name: mangocontainercm
+        image: mongo
+        ports:
+        - containerPort: 27017
+        env:
+          - name: MONGOINITDBNAME
+            valueFrom:
+              configMapKeyRef:
+                name: mangocm
+                key: MONGO_INITDB_ROOT_USERNAME
+          - name: MONGOINITDBPASS
+            valueFrom:
+              configMapKeyRef:
+                name: mangocm
+                key: MONGO_INITDB_ROOT_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongosvc
+spec:
+  type: ClusterIP
+  selector:
+    app: mangocm
+  ports:
+  - port: 27017
+    targetPort: 27017

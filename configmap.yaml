@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mangocm
+data: 
+  # property-like keys; each key maps to a simple value
+  MONGO_INITDB_ROOT_USERNAME: "devdb"
+  MONGO_INITDB_ROOT_PASSWORD: "devdb@123"
+  MONGO_DB_HOSTNAME: "mongosvc"
+  MONGO_DB_USERNAME: "devdb"
+  MONGO_DB_PASSWORD: "devdb@123"
+  # file-like keys
+  game.properties: |
+    enemy.types=aliens,monsters
+    player.maximum-lives=5    
+  user-interface.properties: |
+    color.good=purple
+    color.bad=yellow
+    allow.textmode=true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: javawebappconfig
+data:
+  # file-like keys
+  tomcat-users.xml: |
+    <?xml version='1.0' encoding='utf-8'?>
+      <tomcat-users xmlns="http://tomcat.apache.org/xml"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:schemaLocation="http://tomcat.apache.org/xml tomcat-users.xsd"
+                      version="1.0">
+       <user username="tomcat" password="tomcat" roles="admin-gui,manager-gui"/>
+    </tomcat-users>
+

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: nginxhpa
+  labels:
+    type: hpa
+spec:
+  replicas: 4
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      type: hpa
+  template:
+    metadata:
+      labels:
+        type: hpa
+    spec:
+      containers:
+      - name: nginxhpa
+        image: nginx
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 3Gi
+          limits:
+            cpu: 3
+            memory: 7Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hpasvc
+spec:
+  type: NodePort
+  selector:
+    type: hpa
+  ports:
+  - port: 80
+    nodePort: 30009
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+   name: hpanginx
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nginxhpa
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 10
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 10

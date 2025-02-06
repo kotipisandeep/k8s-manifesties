@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: deamonns
+  labels:
+    app: dsns
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-ds
+  namespace: deamonns
+spec:
+  selector:
+    matchLabels:
+      app: nginxds
+  template:
+    metadata:
+      labels:
+        app: nginxds
+    spec:
+      containers:
+      - name: nginxds
+        image: nginx
+        ports:
+        - containerPort: 8080 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dssvc
+  namespace: deamonns
+  labels: 
+    app: dssvc
+spec:
+  type: NodePort
+  selector:
+    app: nginxds
+  ports:
+  - port: 80
+    targetPort: 8080
+    nodePort: 30019
