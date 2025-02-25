@@ -1,0 +1,1823 @@
+sudo apt install -y kubelet=1.20.7-00 --allow-change-held-packages --allow-downgrades
+	
+
+08-05-2023
+--------------
+What is Kubernetes? 
+• Kubernetes is an orchestration engine and open-source platform for managing 
+containerized applications.
+• Responsibilities include container deployment, scaling & descaling of containers 
+& container load balancing.
+• Actually, Kubernetes is not a replacement for Docker, But Kubernetes can be 
+considered as a replacement for Docker Swarm, Kubernetes is significantly more 
+complex than Swarm, and requires more work to deploy.
+• Born in Google ,written in Go/Golang. Donated to CNCF(Cloud native computing 
+foundation) in 2014.
+• Kubernetes v1.0 was released on July 21, 2015.
+• Current stable release v1.27.0
+
+The features of Kubernetes, are as follows:
+----------------------------------------------------
+1. Automated Scheduling: Kubernetes provides advanced scheduler to launch container on cluster nodes based on their resource 
+requirements and other constraints, while not sacrificing availability.
+2. Self Healing Capabilities: Kubernetes allows to replaces and reschedules containers when nodes die. It also kills containers that don’t 
+respond to user-defined health check and doesn’t advertise them to clients until they are ready to serve.
+3.Automated rollouts & rollback: Kubernetes rolls out changes to the application or its configuration while monitoring application health 
+to ensure it doesn’t kill all your instances at the same time. If something goes wrong, with Kubernetes you can rollback the change.
+4.Horizontal Scaling & Load Balancing: Kubernetes can scale up and scale down the application as per the requirements with a simple 
+command, using a UI, or automatically based on CPU usage
+5. Service Discovery & Load balancing
+With Kubernetes, there is no need to worry about networking and communication because Kubernetes will automatically assign IP addresses to
+containers and a single DNS name for a set of containers, that can load-balance traffic inside the cluster.
+Containers get their own IP so you can put a set of containers behind a single DNS name for load balancing.
+6. Storage Orchestration
+With Kubernetes, you can mount the storage system of your choice. You can either opt for local storage, or choose a public cloud provider such as
+GCP or AWS, or perhaps use a shared network storage system such as NFS, iSCSI, etc.
+
+
+OCI:open container initiative
+------------------------------------
+all container run times should follow OCI rule.it means all container run time can use any CRT files to build container.
+docker
+container-d
+cri-o 
+
+
+self managed k8s cluster AND managed k8s cluster
+------------------------------------------------
+self managed k8s cluster
+-------------------------
+:here we have to take care of everything,like installing required,setting up cluster.
+using- 
+kubeadm:kubeadm is a software,we can setup multi node ks8 cluster using kubeadm.
+kubespray:(using ansible playbook)
+minikube(single nobe k8s cluster)
+
+
+
+managed k8s cluster:here provider will take care of everything,
+--------------------
+eks(elastic k8s service)aws
+aks(azure k8s service)
+gke(google k8s engine)
+iks(ibm k8s engine)
+
+KOPS: k8s operations
+----------------------
+kops is a software using which we can setup prodution ready,and high availability cluster in most of the clouds.
+*it will use consepts like autoscaling groups,lauch configurations.
+
+KUBELET:kubelet is primary node agent which is required in all nodes and master
+---------
+KUBECTL:it is cli we can have kubectl in other machine oterthan cluster to deploy and get details.
+----------
+
+
+KUBERNATES
+-------------------
+CNI--->container network interface
+we have to install cni plugin to have network in kuberates,pods requier networking 
+ network provider are--:
+*planlal
+*clanico
+*weavenet
+
+
+cat /etc/kubernets/admin.conf--->this file will have all cluster details and certificate details,we should have this file to execute kubctl command
+kubectl config get-contexts---->will how many cluster are in that config file
+kubectl get nodes -o wide---->to see version of kubernetes
+ 
+KUBERNATES OBJECTS
+-----------------------------
+• Kubernetes Objects are persistent entities in the Kubernetes system. Kubernetes uses these entities to represent the state of
+your cluster.
+• A Kubernetes object is a “record of intent”–once you create the object, the Kubernetes system will constantly work to ensure 
+that object exists.
+• To work with Kubernetes objects–whether to create, modify, or delete them–you’ll need to use the Kubernetes API. When you 
+use the kubectl command-line interface, for example, the CLI makes the necessary Kubernetes API calls for you.
+	
+The basic Kubernetes objects include:
+• Namespace
+. Pod
+• Replication Controller
+• ReplicaSet
+• DaemonSet
+• Deployment
+• Service
+• ClusterIP
+• NodePort
+• Volume
+• Job
+
+NAMESPACES
+------------------
+it is kid of vertual cluster inside the kubernetes cluster ,it is used to isolate in cluster.
+within NS name should be uniq.
+
+kubectl get ns/namespaces---->to se namespaces
+default namespaces are-->default,kube-system,kube-public.DEFAULT NS is used by default
+kubectl get pods -n kube-system---->to see pods in kub-system ns
+kubectl create namespace <name>---->to create ns
+kubectl get all -n kube-system--->will display all the service in kube-system ns like pods,services,deployments,demonset,RS,RC
+we use KUBE-SYSTEM namespcace is used to all kubernetic services
+
+• Default is for deployments that are not given a namespace, which is a quick way to create a mess that will be hard to clean up if you
+do too many deployments without the proper information.
+• Kube-system is for all things relating to the Kubernetes system. Any deployments to this namespace are playing a dangerous game and 
+can accidentally cause irreparable damage to the system itself. 
+• Kube-public is readable by everyone, but the namespace is reserved for system usage
+
+#we can set the qouta using resource qouta while creating NS
+
+
+
+RBAC---->role based access controll
+we can create any k8s resource using imparative and declarative.
+#imparative(command) :using command
+ex: kubectl create ns <namespacename>
+#declarative(manifast file):using manfisfile(yaml,yml). k8s will supports .json format also.
+kubrctl apply -f <manfistfilename>.yaml
+
+apiVersion: v1
+kind: Namespace
+metadata: 
+ name: test
+
+kubectl apply -f test.yml -v=8 :  -v stands for verbus, =8 is level of verbus like 1,2,3,4,5,6,7.
+
+#kubectl api-resources : to see the details about resources
+
+PODS:
+------------
+• A Pod always runs on a Node.
+• A pod is the smallest building block or basic unit of scheduling in Kubernetes. 
+• In a Kubernetes cluster, a pod represents a running process.
+• Inside a pod, you can have one or more containers. Those containers all share a unique network IP, storage, network and any 
+other specification applied to the pod.
+
+STATIC POD:
+-----------
+Static Pods are managed directly by the kubelet and the API server does not have any control over these pods. The kubelet is responsible to watch each static Pod and 
+restart it if it crashes. The static Pods running on a node are visible on the API server but cannot be controlled by the API Server. Static Pod does not have any associated 
+replication controller, kubelet service itself watches it and restarts it when it crashes. There is no health check for static pods
+
+kubernetes Labels and Selectors
+Labels
+When One thing in k8s needs to find another things in k8s, it uses labels.
+Labels are key/value pairs attached to Object
+You can make your own and apply it.
+it’s like tag things in kubernetes
+For e.g.
+labels: 
+app: nginx
+role: web
+env: dev
+Selectors
+Selectors use the label key to find a collection of objects matched with same value
+It’s like Filter, Conditions and query to your labels
+For e.g.
+selectors: 
+env = dev 
+app != db
+release in (1.3,1.4)
+Labels and Selectors are used in many places like Services, Deployment and we will see now in Replicasets.
+
+#imparative:
+kubectl run <podname> --image=<imagetag> --port=<containerport>
+ex: kubectl run mavenwebapp --image=dockerhadson/maven-web-application:1 --port=8080 -n test --dry-run=client-o yml > mavenapp.yaml
+#declarative:
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mavenwebapppod
+  namespace: test
+  labels:
+    app: mavenwebapp
+spec:
+  containers:
+  - name: mavenwebappcontainer
+    image: dockerhandson/maven-web-application:1
+    ports:
+    - containerPort: 8080
+
+#kubectl apply -f mavenwebapp.yml --dry-run=client : to validate yml file at kubectl level
+#kubectl apply -f mavenwebapp.yml --dry-run=server : to validate yml file at apiserver level(master)
+
+#kubectl run mavenwebapp --image=dockerhandson/maven-web-application:1 --port=8080 -n test --dry-run=client -o yaml > mavenapp.yaml
+above command will give mavenapp.yaml file which we have mentioned in command
+ 
+#kubectl delete  pod/mavenwebapppod -n test:to delete pod
+
+#kubectl get pod -o wide -n test : will give clear info
+NAME             READY   STATUS    RESTARTS      AGE   IP          NODE              NOMINATED NODE   READINESS GATES
+mavenwebapppod   1/1     Running   5 (11m ago)   59m   10.32.0.2   ip-172-31-40-60   <none>           <none>
+#curl -v  10.32.0.2:8080/maven-web-application/ : to access the pod within the cluster
+
+SERVICE:
+------------
+*service makes pods accessable/disscoverable within the cluster or outside the cluster. A Service identifies Pods by its LabelSelector.
+• When we create a service we will get one Virtual IP (Cluster IP) it will get registered to the DNS(kube-dns). Using this Other 
+PODS can find and talk the pods of this service using service name. 
+• Service is just a logical concept, the real work is being done by the “kube-proxy” pod that is running on each node.
+• It redirect requests from Cluster IP(Virtual IP Address) to Pod IP.
+
+#kubectl get svc -n test
+
+types of service:
+------------------
+#clusterip– Exposes the service on a cluster-internal IP. Service is only reachable from within the cluster. This is the default Type
+#nodeport
+#loadbalancer
+#headless
+
+clusterip:
+----------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mavenwebapppod
+  namespace: test
+  labels:
+    app: mavenwebapp
+spec:
+  containers:
+  - name: mavenwebappcontainer
+    image: dockerhandson/maven-web-application:1
+    ports:
+    - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mavenwebappsvc
+  namespace: test
+spec:
+  type: ClusterIP
+  selector:
+    app: mavenwebapp -->service will select pods using the labels of the pods. if we have same lable for two or more pods it add all the pods into service.
+  ports:
+  - port: 80 --> this port will be used to access service
+    targetPort: 8080  --> this port is port of pod(container port)
+
+
+#kubectl describe svc mavenwebappsvc -n test : will describe the service
+Name:              mavenwebappsvc
+Namespace:         test
+Labels:            <none>
+Annotations:       <none>
+Selector:          app=mavenwebapp   --> selected from labels in pod
+Type:              ClusterIP
+IP Family Policy:  SingleStack
+IP Families:       IPv4
+IP:                10.99.162.80
+IPs:               10.99.162.80       -->service ip
+Port:              <unset>  80/TCP    --> service port
+TargetPort:        8080/TCP
+Endpoints:         10.32.0.2:8080    --> end url of pod
+Session Affinity:  None
+Events:            <none>
+	
+NODEPORT:
+----------------
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+  namespace: erp-ns
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    ports:
+    - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginxsvc
+  namespace: erp-ns
+spec:
+  type: NodePort
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30000
+
+#we have to give nodePort only btw 30000-32767
+#Also we can access the this with http://<nodeip>:<nodeport> from out the cluster. We use any nodeip which is part of the cluster to access the application.
+
+
+#yaml for multi container and service
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: casbpmpod
+  labels:
+    app: casbpm
+spec:
+  containers:
+  - name: cas
+    image: sandeepfile/tomcat-cas:latest
+    ports:
+    - containerPort: 9030
+  - name: bpm
+    image: sandeepfile/bpm:latest
+    ports:
+    - containerPort: 8280
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bpm-svc
+spec:
+  selector:
+    app: casbpm
+  type: NodePort
+  ports:
+  - name: bpm
+    port: 8080
+    targetPort: 8280
+    nodePort: 30004
+  - name: cas
+    port: 9030
+    targetPort: 9030
+    nodePort: 30005
+
+CONTROLLERS:
+-------------------
+
+REPLICATION CONTROLLER:
+------------------------------
+
+SAMPLE FILE:
+
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:	
+  replicas: 3
+  selector:
+    app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginxsvc
+spec:
+  type: NodePort
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30007
+	
+
+kubectl scale rc nginx --replicas 4
+kubectl describe rc
+kubectl get rc
+
+#Use kubectl run to quickly deploy workloads like Pods or Deployments. 
+#Use kubectl create when you need to define and create new resources.
+#Use kubectl expose when you want to expose existing resources to traffic (e.g., create a Service for a Deployment or ReplicationController).
+
+kubectl create rc nginx --image=nginx --replicas=3 --port=80
+kubectl expose rc nginx --type=NodePort --name=nginxsvc --port=80 --target-port=80 --node-port=30007
+
+REPLICASET:
+----------------
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cccns
+  labels:
+    app: cccapp
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx
+  namespace: cccns
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginxsvc
+  namespace: cccns
+spec:
+  type: NodePort
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30008
+
+ kubectl get rs -n cccns
+ kubectl get pods -n cccns -o wide --show-labels
+ kubectl describe rs -n cccns
+ 
+ 
+DAEMONSET:(ds) 
+--------------------
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: deamonns
+  labels:
+    app: dsns
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-ds
+  namespace: deamonns
+spec:
+  selector:
+    matchLabels:
+      app: nginxds
+  template:
+    metadata:
+      labels:
+        app: nginxds
+    spec:
+      containers:
+      - name: nginxds
+        image: nginx
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dssvc
+  namespace: deamonns
+  labels:
+    app: dssvc
+spec:
+  type: NodePort
+  selector:
+    app: nginxds
+  ports:
+  - port: 80
+    targetPort: 8080
+    nodePort: 30019
+
+  kubectl get ds -n deamonns
+  kubectl describe ds nginx-ds -n deamonns
+  
+  
+DEPLOYMENT:
+---------------------------
+  
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: deployns
+  labels:
+    app: cccapp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: deployns
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginxsvc
+  namespace: deployns
+spec:
+  type: NodePort
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30009
+	
+ kubectl get pods -n deployns
+ kubectl get deployment -n deployns
+ 
+To see the no.of updates happend by default it will store 10 revisions
+ kubectl rollout history deployment nginx -n deployns 
+ 
+Will show the pod template for that perticular revision number
+ kubectl rollout history deployment nginx -n deployns --revision 2 
+
+will undo the rs and pods to the pervious version. 
+ kubectl rollout undo deployment nginx -n deployns
+ kubectl rollout undo --help
+
+ Will undo the rs and pods to the revision num 3.
+ kubectl rollout undo deployment nginx -n deployns  --to-revision=3 
+ 
+Update Deployment Image using command	
+
+kubectl set image deployment <deploymentName> <containerName>=<imageNameWithVersion> --record		
+ex:	
+kubectl set image deployment javawebappdeployment javawebappcontainer=dockerhandson/java-web-app:2 --record		
+
+Roll back to previous revison
+kubectl rollout undo  deployment <deploymentName> --to-revision 1
+
+
+RESOURCE REQUESTES and LIMITS
+------------------------------------
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: deployns
+  labels:
+    app: nginx
+spec:
+  replicas: 4
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 90
+        resources:
+          requests:
+            memory: 5Gi
+            cpu: 1
+          limits:
+            memory: 8Gi
+            cpu: 4
+
+
+METRICS
+-----------
+
+Requirements
+Metrics Server has specific requirements for cluster and network configuration. These requirements aren’t the default for all cluster distributions. Please ensure that your cluster distribution supports these requirements before using Metrics Server:
+
+Metrics Server must be reachable from kube-apiserver by container IP address (or node IP if hostNetwork is enabled).
+The kube-apiserver must enable an aggregation layer.
+Nodes must have Webhook authentication and authorization enabled.
+Kubelet certificate needs to be signed by cluster Certificate Authority (or disable certificate validation by passing --kubelet-insecure-tls to Metrics Server)
+Container runtime must implement a container metrics RPCs (or have cAdvisor support)
+Installation
+Latest Metrics Server release can be installed by running:
+
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+Installation instructions for previous releases can be found in Metrics Server releases.
+
+
+TO EDIT THE YAML FILE OF metrics-server:
+----------------------------------------------
+
+kubectl edit deployment metrics-server -o yaml -n kube-system
+kubectl get hpa
+
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginxhpa
+  labels:
+    type: hpa
+spec:
+  replicas: 4
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      type: hpa
+  template:
+    metadata:
+      labels:
+        type: hpa
+    spec:
+      containers:
+      - name: nginxhpa
+        image: nginx
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 3Gi
+          limits:
+            cpu: 3
+            memory: 7Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hpasvc
+spec:
+  type: NodePort
+  selector:
+    type: hpa
+  ports:
+  - port: 80
+    nodePort: 30009
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+   name: hpanginx
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nginxhpa
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 10
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 10
+		
+		
+		
+VOLUMES:
+___________________
+
+Application and db manifest:
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: springapp
+  template:
+    metadata:
+      labels:
+        app: springapp
+    spec:
+      containers:
+      - name: springappcontainer
+        image: dockerhandson/spring-boot-mongo:1
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MONGO_DB_HOSTNAME
+          value:  mongosvc
+        - name: MONGO_DB_USERNAME
+          value: devdb
+        - name: MONGO_DB_PASSWORD
+          value: devdb@123
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: volumessvc
+spec:
+  type: NodePort
+  selector:
+    app: springapp
+  ports:
+  - port: 80
+    targetPort: 8080
+    nodePort: 30099
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: mongo
+spec:
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongodbcontainer
+        image: mongo
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: devdb
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: devdb@123
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongosvc
+spec:
+  type: ClusterIP
+  selector:
+    app: mongo
+  ports:
+  - port: 27017
+    targetPort: 27017
+	
+	
+HOSTPATH:
+------------------
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: springapp
+  template:
+    metadata:
+      labels:
+        app: springapp
+    spec:
+      containers:
+      - name: springappcontainer
+        image: dockerhandson/spring-boot-mongo:1
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MONGO_DB_HOSTNAME
+          value:  mongosvc
+        - name: MONGO_DB_USERNAME
+          value: devdb
+        - name: MONGO_DB_PASSWORD
+          value: devdb@123
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: volumessvc
+spec:
+  type: NodePort
+  selector:
+    app: springapp
+  ports:
+  - port: 80
+    targetPort: 8080
+    nodePort: 30099
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: mongo
+spec:
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongodbcontainer
+        image: mongo
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: devdb
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: devdb@123
+        volumeMounts:
+        - name: nodeportv
+          mountPath: /data/db
+      volumes:
+      - name: nodeportv
+        hostPath:
+          path: /DB
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongosvc
+spec:
+  type: ClusterIP
+  selector:
+    app: mongo
+  ports:
+  - port: 27017
+    targetPort: 27017
+
+
+NFS:
+---------
+	Configuration of NFS Server
+===========================
+
+Step 1: 
+
+Create one Server for NFS
+
+Install NFS Kernel Server in 
+Before installing the NFS Kernel server, we need to update our system’s repository index with that of the Internet through the following apt command as sudo:
+
+$ sudo apt-get update
+
+The above command lets us install the latest available version of a software through the Ubuntu repositories.
+
+Now, run the following command in order to install the NFS Kernel Server on your system:
+
+$ sudo apt install nfs-kernel-server
+
+
+Step 2: Create the Export Directory
+
+sudo mkdir -p /mnt/nfs_share/
+
+# As we want all clients to access the directory, we will remove restrictive permissions.
+sudo chown nobody:nogroup /mnt/nfs_share/
+sudo chmod 777 /mnt/nfs_share/
+
+Step 3: Assign server access to client(s) through NFS export file
+
+sudo vi /etc/exports
+
+
+#/mnt/share/ <clientIP or Clients CIDR>(rw,sync,no_subtree_check,no_root_squash)
+ #Ex:
+/mnt/nfs_share/ *(rw,sync,no_subtree_check,no_root_squash)
+
+
+
+
+Step 4: Export the shared directory
+
+$ sudo exportfs -a
+
+
+
+sudo systemctl restart nfs-kernel-server
+
+Step 5: Open firewall for the client (s) PORT 2049
+
+
+
+
+Configuring the Client Machines(Kubernetes Nodes)
+================================================
+
+Step 1: Install NFS Common
+Before installing the NFS Common application, we need to update our system’s repository index with that of the Internet through the following apt command as sudo:
+
+$ sudo apt-get update
+
+
+$ sudo apt-get install nfs-common
+
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: mongo
+spec:
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongodbcontainer
+        image: mongo
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: devdb
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: devdb@123
+        volumeMounts:
+        - name: nodeportv
+          mountPath: /data/db
+      volumes:
+      - name: nodeportv
+        nfs:
+          server: 10.10.69.175
+          path: /opt/nfs/
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongosvc
+spec:
+  type: ClusterIP
+  selector:
+    app: mongo
+  ports:
+  - port: 27017
+    targetPort: 27017
+
+
+PERSISTENT VOLUMES AND PERSISTENT VOLUME CLAIM
+--------------------------------------------------
+PV --> It's a piece of storage(hostPath,nfs,ebs,azurefile,azuredisk) in k8s cluster. PV exists independently from from pod life cycle form which it is consuming.
+
+PersistentVolumeClaim --> It's request for storage(Volume).Using PVC
+                          we can request(Specifiy) how much storage u need
+			  and with what access mode u need.
+			  
+			  
+Persistent Volumes are provisioned in two ways, Statically or Dynamically.
+
+1) Static Volumes (Manual Provisionging)
+    As a k8's Administrator will create a PV manullay so that pv's can be avilable for PODS which requires.
+	Create a PVC so that PVC will be attached PV. We can use PVC with PODS to get an access to PV. 
+	
+2) Dynamic Volumes (Dynamic Provisioning)
+     It's possible to have k8's provsion(Create) volumes(PV) as required. Provided we have configured storageClass.
+	 So when we create PVC if PV is not available Storage Class will Create PV dynamically.
+   
+
+PVC
+If pod requires access to storage(PV),it will get an access using PVC. PVC will be attached to PV.
+
+
+
+PersistentVolume – the low level representation of a storage volume.
+PersistentVolumeClaim – the binding between a Pod and PersistentVolume.
+Pod – a running container that will consume a PersistentVolume.
+StorageClass – allows for dynamic provisioning of PersistentVolumes.
+
+
+
+PV Will have Access Modes
+
+ReadWriteOnce – the volume can be mounted as read-write by a single node
+ReadOnlyMany – the volume can be mounted read-only by many nodes
+ReadWriteMany – the volume can be mounted as read-write by many nodes
+
+In the CLI, the access modes are abbreviated to:
+
+RWO - ReadWriteOnce
+ROX - ReadOnlyMany
+RWX - ReadWriteMany
+
+
+Claim Policies
+
+A Persistent Volume Claim can have several different claim policies associated with it including
+
+Retain – When the claim(PVC) is deleted, the volume(PV) will exists.
+Recycle – When the claim is deleted the volume remains but in a state where the data can be manually recovered.
+Delete – The persistent volume is deleted when the claim is deleted.
+The claim policy (associated at the PV and not the PVC) is responsible for what happens to the data on when the claim has been deleted.
+
+
+Commands
+
+kubectl get pv
+kubectl get pvc
+kubectl get storageclass
+kubectl describe pvc <pvcName>
+kubectl describe pv <pvName>
+
+
+
+If Storage is calss not configued
+=================================
+1) Create a PV manually if not already available
+
+2) Claim the PV by creating PVC
+
+3) Use that PVC in your pod manfiset
+
+
+If Storage is calss configued
+=============================
+
+1) Claim the PV by creating PVC
+
+2) Use that PVC in your pod manfiset
+
+
+
+
+Find Sample PV & PVC Yml from below Git Hub
+
+https://github.com/MithunTechnologiesDevOps/Kubernates-Manifests/tree/master/pv-pvc
+
+
+
+PV:
+-------------------------------
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: manogpv1
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: "/data/"
+  persistentVolumeReclaimPolicy: Recycle
+  
+  
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: manogpv1
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  nfs:
+    server: 10.10.69.175
+    path: /opt/nfs
+  persistentVolumeReclaimPolicy: Recycle
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: manoghppv
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /opt/db
+  PersistentVolumeReclaimPolicy: Recycle
+
+PVC along with pod:
+-------------------
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: mongo
+spec:
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongodbcontainer
+        image: mongo
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: devdb
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: devdb@123
+        volumeMounts:
+        - name: nodeportv
+          mountPath: /data/db
+      volumes:
+      - name: nodeportv
+        persistentVolumeClaim:
+          claimName: mangopvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mangopvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongosvc
+spec:
+  type: ClusterIP
+  selector:
+    app: mongo
+  ports:
+  - port: 27017
+    targetPort: 27017
+	
+	
+	
+STORAGE CLASS:
+-----------------------
+kubectl get storageclass
+
+
+
+Note: Configure Storage Class for Dynamic Volumes based on infra sturcture. Make that one as default storage class.
+
+NFS Provisioner
+Prerequisiets:
+1) NFS Server
+2) Insall nfs client softwares in all k'8s nodes.
+
+Find NFS Provisioner below.
+
+https://raw.githubusercontent.com/MithunTechnologiesDevOps/Kubernates-Manifests/master/pv-pvc/nfsstorageclass.yml
+
+Get yml from above link.
+
+$ curl https://raw.githubusercontent.com/MithunTechnologiesDevOps/Kubernates-Manifests/master/pv-pvc/nfsstorageclass.yml >> nfsstorageclass.yml
+
+And update Your NFS Server IP Address(2 Places you need update IP Addrees) And path of nfs share. Apply
+
+kubectl apply -f nfsstorageclass.yml
+
+Dynamic Volumes
+
+Refer below link where we are creating PVC & PODS :
+
+https://raw.githubusercontent.com/MithunTechnologiesDevOps/Kubernates-Manifests/master/SpringBoot-Mongo-DynamicPV.yml
+
+1) Create PVC(If we don't mention storageclass name it will use defautl storage class which is configured.) It will create PV.
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-nfs-pvc
+  namespace: test-ns
+spec:
+  storageClassName: mongodbsc
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+	  
+2) Use PVC with POD in POD manifest.
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: mongodb
+  namespace: test-ns
+spec:
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+     metadata:
+       name: mongodbpod
+       labels:
+         app: mongodb
+     spec:
+       volumes:
+       - name: mongodb-pvc
+         persistentVolumeClaim:
+           claimName: mongodb-nfs-pvc   
+       containers:
+       - name: mongodbcontainer
+         image: mongo
+         ports:
+         - containerPort: 27017
+         env:
+         - name: MONGO_INITDB_ROOT_USERNAME
+           value: devdb
+         - name: MONGO_INITDB_ROOT_PASSWORD
+           value: devdb@123
+         volumeMounts:
+         - name: mongodb-pvc
+           mountPath: /data/db
+		   
+
+storage class sample
+--------------------------
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: mongodbsc
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true" # It will deafault storage class
+provisioner: nfs-provisioner
+reclaimPolicy: Retain # default value is Delete
+allowVolumeExpansion: true
+parameters:
+  guaranteedReadWriteLatency: "true" # provider-specific
+
+
+
+ConfigMaps and Secrets
+--------------------------
+
+Configmap will store values in plain text and Secrets will also store base64 encrypted values.
+
+kubectl create configmap mongo-secret --from-literal=mongodbusername=devdb -n test-ns
+kubectl create secret generic mongo-secret --from-literal=mongodbpassword=devdb@123 -n test-ns
+
+kubectl get secret mongo-secret -n test-ns -o yaml
+
+echo -n 'devdb' | base64 : will give encrypted value
+
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: springappsecret
+  namespace: test-ns
+type: Opaque
+stringData:
+  mongodbpassword: devdb@123
+  
+Key Points about stringData in Secrets:
+---------------------------------------
+stringData Field:
+ *The stringData field allows you to define key-value pairs in plain text.
+ *Kubernetes will automatically Base64-encode the values in stringData and store them in the data field of the Secret.
+
+Benefits of Using stringData:
+ *It eliminates the need to manually Base64-encode values.
+ *It's user-friendly for creating Secrets in plain text during development or testing.
+ *It is especially useful when writing YAML manifests manually.
+
+How it Works:
+*When you apply this manifest using kubectl apply -f, Kubernetes processes the stringData field and converts the plain text values into Base64.
+*For example, devdb@123 will be encoded into ZGV2ZGJAMTIz and stored in the Secret's data field.
+
+
+Also we can directly give base64 encoded format by as below it will store direct encoded in data field.
+
+kubectl create secret generic mongo-secret --from-literal=mongodbpassword=devdb@123 -n test-ns
+echo -n 'devdb' | base64 : will give base64 encoded value
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: springapp-config
+data:
+  MONGO_DB_HOSTNAME: mongosvc
+  MONGO_DB_USERNAME: devdb
+  MONGO_DB_PASSWORD: devdb@123
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongo-secret
+type: Opaque
+data:
+  MONGO_INITDB_ROOT_USERNAME: ZGV2ZGI= # Base64 encoded 'devdb'
+  MONGO_INITDB_ROOT_PASSWORD: ZGV2ZGJAMTIz # Base64 encoded 'devdb@123'
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: springapp
+  template:
+    metadata:
+      labels:
+        app: springapp
+    spec:
+      containers:
+      - name: springappcontainer
+        image: dockerhandson/spring-boot-mongo:1
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: springapp-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: volumessvc
+spec:
+  type: NodePort
+  selector:
+    app: springapp
+  ports:
+  - port: 80
+    targetPort: 8080
+    nodePort: 30099
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: mongo
+spec:
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongodbcontainer
+        image: mongo
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: MONGO_INITDB_ROOT_USERNAME
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: MONGO_INITDB_ROOT_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongosvc
+spec:
+  type: ClusterIP
+  selector:
+    app: mongo
+  ports:
+  - port: 27017
+    targetPort: 27017
+
+
+	
+Pull an Image from a Private Registry
+=====================================
+
+kubectl create secret docker-registry regcred --docker-server=<your-registry-server> --docker-username=<your-name> --docker-password=<your-pword> --docker-email=<your-email>
+
+
+<your-registry-server> is your Private Docker Registry FQDN. Use https://index.docker.io/v1/ for DockerHub.
+<your-name> is your Docker username.
+<your-pword> is your Docker password.
+<your-email> is your Docker email.
+
+ex: 
+Docker Hub: --docker-server is optional in case of docker hub
+
+kubectl create secret docker-registry bpmsecret --docker-server=https://index.docker.io/v1/ --docker-username=sandeepfile --docker-password=sandeep8008
+
+
+kubectl create secret docker-registry regcred --docker-server=https://index.docker.io/v1/ --docker-username=dockerhandson --docker-password=password
+
+ECR # Get ECR password using AWS CLI and use the password below. If its EKS cluster we just need to attache ECR Policies(Permsisssions) to IAM Role and attach that role EKS nodes.No
+need to create a secret and use that as imagepull secret.
+
+kubectl create secret docker-registry ecrregistrycredentails --docker-server=https://567763916643.dkr.ecr.ap-south-1.amazonaws.com --docker-username=AWS --docker-password=password
+				
+# Nexus
+kubectl create secret docker-registry nexuscred --docker-server=172.31.106.247:8083 --docker-username=admin --docker-password=admin123
+
+
+Use above scret as imagepull screts in pod template
+
+If you already ran docker login, you can copy that credential into Kubernetes:
+
+kubectl create secret generic regcred --from-file=.dockerconfigjson=<path/to/.docker/config.json> --type=kubernetes.io/dockerconfigjson	
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bpm
+  labels:
+    type: hpa
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      type: hpa
+  template:
+    metadata:
+      labels:
+        type: hpa
+    spec:
+      imagePullSecrets:
+      - name: bpmsecret
+      containers:
+      - name: bpm
+        image: sandeepfile/bpm
+        ports:
+        - containerPort: 8280
+        resources:
+          requests:
+            cpu: 50m
+            memory: 3Gi
+          limits:
+            cpu: 3
+            memory: 7Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hpasvcbpm
+spec:
+  type: NodePort
+  selector:
+    type: hpa
+  ports:
+  - port: 8280
+    nodePort: 30009
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+   name: hpabpm
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dockercred
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 10
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 10
+
+
+Liveness Probe & Ready ness Probes
+==================================  
+The kubelet uses liveness probes to know when to restart a container. For example, liveness probes could catch a deadlock, where an application is running, but unable to make progress. Restarting a container in such a state can help to make the application more available despite bugs.
+
+The kubelet uses readiness probes to know when a container is ready to start accepting traffic. One use of this signal is to control which Pods are used as backends for Services. A Pod is considered ready when its Ready condition is true. When a Pod is not ready, it is removed from Service load balancers. A Pod's Ready condition is false when its Node's Ready condition is not true, when one of the Pod's readinessGates is false, or when at least one of its containers is not ready.
+
+This probes can be proformed in three ways:
+
+1:command 
+2:HTTP request 
+3:TCP probe
+
+#Command:In the configuration file, you can see that the Pod has a single Container. The periodSeconds field specifies that the kubelet should perform a liveness probe every 5 seconds. The initialDelaySeconds field tells the kubelet that it should wait 5 seconds before performing the first probe. To perform a probe, the kubelet executes the command cat /tmp/healthy in the target container. If the command succeeds, it returns 0, and the kubelet considers the container to be alive and healthy. If the command returns a non-zero value, the kubelet kills the container and restarts it.
+
+
+ livenessProbe:
+      httpGet:
+        path: /healthz
+        port: 8080
+        httpHeaders:
+        - name: Custom-Header
+          value: Awesome
+      initialDelaySeconds: 3
+      periodSeconds: 3
+	  
+#HTTP request:In the configuration file, you can see that the Pod has a single container. The periodSeconds field specifies that the kubelet should perform a liveness probe every 3 seconds. The initialDelaySeconds field tells the kubelet that it should wait 3 seconds before performing the first probe. To perform a probe, the kubelet sends an HTTP GET request to the server that is running in the container and listening on port 8080. If the handler for the server's /healthz path returns a success code, the kubelet considers the container to be alive and healthy. If the handler returns a failure code, the kubelet kills the container and restarts it.
+
+Any code greater than or equal to 200 and less than 400 indicates success. Any other code indicates failure.
+
+spec:
+  containers:
+  - name: liveness
+    image: registry.k8s.io/e2e-test-images/agnhost:2.40
+    args:
+    - liveness
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: 8080
+        httpHeaders:
+        - name: Custom-Header
+          value: Awesome
+      initialDelaySeconds: 3
+      periodSeconds: 3
+
+#TCP socket:As you can see, configuration for a TCP check is quite similar to an HTTP check. This example uses both readiness and liveness probes. The kubelet will run the first liveness probe 15 seconds after the container starts. This will attempt to connect to the goproxy container on port 8080. If the liveness probe fails, the container will be restarted. The kubelet will continue to run this check every 10 seconds.
+In addition to the liveness probe, this configuration includes a readiness probe. The kubelet will run the first readiness probe 15 seconds after the container starts. Similar to the liveness probe, this will attempt to connect to the goproxy container on port 8080. If the probe succeeds, the Pod will be marked as ready and will receive traffic from services. If the readiness probe fails, the pod will be marked unready and will not receive traffic from any services.
+
+
+spec:
+  containers:
+  - name: goproxy
+    image: registry.k8s.io/goproxy:0.1
+    ports:
+    - containerPort: 8080
+    readinessProbe:
+      tcpSocket:
+        port: 8080
+      initialDelaySeconds: 15
+      periodSeconds: 10
+    livenessProbe:
+      tcpSocket:
+        port: 8080
+      initialDelaySeconds: 15
+      periodSeconds: 10
+	  
+	  
+	  
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bpmwithlivereadyprobe
+  labels:
+    app: liveready
+spec:
+  imagePullSecrets:
+  - name: bpmsecret
+  containers:
+  - name: livereadyprod
+    image: sandeepfile/bpm
+    ports:
+    - containerPort: 8280
+    livenessProbe:
+      tcpSocket:
+        port: 8280
+      initialDelaySeconds: 200
+      periodSeconds: 10
+      timeoutSeconds: 120
+    readinessProbe:
+      tcpSocket:
+        port: 8280
+      initialDelaySeconds: 200
+      periodSeconds: 10
+      timeoutSeconds: 120
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: livereadysvc
+spec:
+  type: NodePort
+  selector:
+    app: liveready
+  ports:
+  - port: 8280
+    nodePort: 30009
+
+
+STATEFULL SETS:
+---------------
+#A StatefulSet runs a group of Pods, and maintains a sticky identity for each of those Pods. This is useful for managing applications that need persistent storage or a stable, unique network identity.
+
+#StatefulSets are valuable for applications that require one or more of the following.
+
+	Stable, unique network identifiers.
+	Stable, persistent storage.
+	Ordered, graceful deployment and scaling.
+	Ordered, automated rolling updates.
+	
+#StatefulSets currently require a Headless Service to be responsible for the network identity of the Pods. You are responsible for creating this Service.
+
+Example of Headless service:
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-service
+  namespace: test-ns
+spec:
+  clusterIP: None # Headless Service
+  selector:
+    app: mongod
+  ports:
+  - port: 27017
+    targetPort: 27017
+
+
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mangodb
+spec:
+  selector:
+    matchLabels:
+      app: mongodb
+  serviceName: mongodb-service
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mongodbcontainer
+        image: mongo
+        command:
+        - "mongodb"
+        - "--bind_ip"
+        - "0.0.0.0"
+        - "--replSet"
+        - "MainRepSet"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        ports:
+        - containerPort: 27017
+        volumeMounts:
+        - name: mongodb-persistent-storage-claim
+          mountPath: "/data/database"
+  volumeClaimTemplates:
+  - metadata:
+      name: mongodb-persistent-storage-claim
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-service
+spec:
+  clusterIP: None # Headless Service
+  selector:
+    app: mongodb
+  ports:
+  - port: 27017
+    targetPort: 27017
+	
+	
+NODE SCHEDULING:
+-------------------
+#Kubernetes scheduler ensures that the right node is selected by checking the node’scapacity for CPU and RAM and comparing it to the Pod’s resource requests. The scheduler makes sure that, for each of these resource types, the sum of all resource requests by the Pods’ containers is less than the capacity of the node. This mechanism ensures that Pods end up on nodes with spare resources.
+
+#Kubernetes scheduler’s default behaviour works well for most cases -- for example, it ensures that pods are only placed on nodes that have sufficient free resources, it ties to spread pods from the same set (ReplicaSet, StatefulSet, etc.) across nodes, it tries to balance out the resource utilization of nodes ..etc,
+
+kubectl get nodes --show-labels
+Add new labels to node:
+Next, select a node to which you want to add a label. Use below command to add label to
+node.
+kubectl label nodes <node-name> <label-key>=<label-value>
+ex:
+kubectl label nodes ip-172.10.43.76 name=WorkerOne
+
+kubectl label node upyog-optiplex-3060 servername=node1
+
+NODE SELECTOR:
+--------------
+
+In order to assign a Pod to the node with the label we just added, you need to specify a nodeSelector field in the PodSpec. You can have a manifest that looks something like this:
+
+spec:
+  nodeSelector:
+    name: Workerone
+EG:
+---	
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: springapp
+  template:
+    metadata:
+      labels:
+        app: springapp
+    spec:
+      nodeSelector:
+        name: cccapp
+      containers:
+      - name: springappcontainer
+        image: dockerhandson/spring-boot-mongo:1
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MONGO_DB_HOSTNAME
+          value: mongosvc
+        - name: MONGO_DB_USERNAME
+          value: devdb
+        - name: MONGO_DB_PASSWORD
+          value: devdb@123
+
+
+NODE AFFINITY:
+-------------------
+As we’ve mentioned earlier, nodeSelector is the simplest Pod scheduling constraint in Kubernetes. The affinity greatly expands the nodeSelector functionality introducing the following improvements:
+1. Affinity language is more expressive (more logical operators to control how Pods are scheduled).
+2. Users can now “soft” scheduling rules. If the “soft” rule is not met, the scheduler can still schedule a Pod onto a specific node.
+
+

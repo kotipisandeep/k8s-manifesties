@@ -1,9 +1,10 @@
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: springapp
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: springapp
@@ -12,6 +13,15 @@ spec:
       labels:
         app: springapp
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: servername
+                operator: In
+                values:
+                - node2
       containers:
       - name: springappcontainer
         image: dockerhandson/spring-boot-mongo:1
@@ -39,7 +49,7 @@ spec:
   ports:
   - port: 80
     targetPort: 8080
-    nodePort: 30099
+    nodePort: 30092
 ---
 apiVersion: apps/v1
 kind: ReplicaSet
