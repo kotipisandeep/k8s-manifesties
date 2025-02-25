@@ -1,0 +1,102 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: springapp
+  template:
+    metadata:
+      labels:
+        app: springapp
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution: # Hard affinity (Must match)
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: servername
+                operator: In
+                values:
+                - node2
+          preferredDuringSchedulingIgnoredDuringExecution:  # Soft affinity (Preferred but not mandatory)
+          - weight: 5
+            preference:
+              matchExpressions:
+              - key: servername
+                operator: In
+                values:
+                - node1
+      containers:
+      - name: springappcontainer
+        image: dockerhandson/spring-boot-mongo:1
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: springapp-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: volumessvc
+spec:
+  type: NodePort
+  selector:
+    app: springapp
+  ports:
+  - port: 80
+    targetPort: 8080
+    nodePort: 30092
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: mongo
+spec:
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongodbcontainer
+        image: mongo
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: MONGO_INITDB_ROOT_USERNAME
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: MONGO_INITDB_ROOT_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongosvc
+spec:
+  type: ClusterIP
+  selector:
+    app: mongo
+  ports:
+  - port: 27017
+    targetPort: 27017
