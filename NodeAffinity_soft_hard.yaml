@@ -1,4 +1,3 @@
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,11 +18,11 @@ spec:
             nodeSelectorTerms:
             - matchExpressions:
               - key: servername
-                operator: In
+                operator: In    # In indicates to select the node which match labels and Out indicates to not to schedule pods in the that node which in matched labels
                 values:
                 - node2
           preferredDuringSchedulingIgnoredDuringExecution:  # Soft affinity (Preferred but not mandatory)
-          - weight: 5
+          - weight: 50
             preference:
               matchExpressions:
               - key: servername
