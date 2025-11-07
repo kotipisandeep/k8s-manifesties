@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: all
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alldep
+  namespace: all
+spec:
+  replicas: 4
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      type: all
+  template:
+    metadata:
+      labels:
+        type: all
+    spec:
+      containers:
+      - name: alldep
+        image: nginx
+        ports:
+        - containerPort: 8280
+        resources:
+          requests:
+            memory: 5Gi
+            cpu: 2
+          limits:
+            memory: 10Gi
+            cpu: 4
+        livenessProbe:
+          tcpSocket:
+            port: 8280
+          initialDelaySeconds: 100
+          periodSeconds: 5
+          timeoutSeconds: 300
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8280
+          initialDelaySeconds: 100
+          periodSeconds: 5
+          timeoutSeconds: 300
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: allsrc
+  namespace: all
+spec:
+  type: NodePort
+  selector:
+    type: all
+  ports:
+  - port: 8280
+    nodePort: 32202
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: allhpa
+  namespace: all
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: alldep
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: npall
+  namespace: all
+spec:
+  podSelector:
+    matchLabels:
+      type: all
+  policyTypes:
+  - Ingress
+  ingress: 
+    - from:
+        - podSelector:
+            matchLabels:
+              type: all
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+      - protocol: TCP
+        port: 8280

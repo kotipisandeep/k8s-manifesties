@@ -11,14 +11,14 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: nginx
+      app: nginx # this is the pod lebel which NP should apply
   policyTypes:
   - Ingress  
   ingress:
   - from:
       - podSelector:
           matchLabels:
-            app: nginx
+            app: nginx # Will allow traffic only from this labeled pods 
       - ipBlock:
          cidr: 0.0.0.0/0  # Allows traffic from any external source
     ports:
